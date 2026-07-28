@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 
 const Analytics = () => {
-  const { user } = useAuth();
+  
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
