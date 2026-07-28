@@ -12,10 +12,24 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
   const [newNote, setNewNote] = useState('');
   const [addingNote, setAddingNote] = useState(false);
 
-  // ✅ Fixed: Added fetchPatientData to dependency array
-  useEffect(() => {
-    fetchPatientData();
-  }, [patientId]);
+// ✅ FIXED: Added fetchPatientData to dependency array
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/patients/${patientId}/medical-history`
+      );
+      setPatientData(res.data.data);
+      setEditData(res.data.data.patient);
+    } catch (error) {
+      console.error('Error fetching patient data:', error);
+      showToast.error('Failed to load patient data');
+    }
+    setLoading(false);
+  };
+  
+  loadData();
+}, [patientId]);  // ✅ Added patientId dependency
 
   const fetchPatientData = async () => {
     try {
