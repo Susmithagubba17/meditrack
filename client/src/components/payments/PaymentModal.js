@@ -29,13 +29,14 @@ const PaymentModal = ({
   };
 
   // ✅ FIXED: Added parentheses to fix mixed operators
-  const formatExpiry = (value) => {
-    const v = value.replace(/\D/g, '');
-    if ((v.length >= 2 && v.length <= 4) || v.length === 6) {
-      return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
-    }
-    return v;
-  };
+// ✅ Fixed
+const formatExpiry = (value) => {
+  const v = value.replace(/\D/g, '');
+  if ((v.length >= 2 && v.length <= 4) || v.length === 6) {
+    return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
+  }
+  return v;
+};
 
   const handleCardPayment = async () => {
     if (!cardNumber || !expiry || !cvc) {
