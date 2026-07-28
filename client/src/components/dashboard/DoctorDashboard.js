@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import VideoCall from '../video/VideoCall';
@@ -23,21 +23,15 @@ const DoctorDashboard = () => {
     notes: '',
     refillsRemaining: 0
   });
-
- // ✅ FIXED: Added missing dependencies
 useEffect(() => {
-  const fetchData = async () => {
-    await fetchAppointments();
-    await fetchPatients();
-    await fetchPrescriptions();
-  };
-  fetchData();
-}, []);  // Empty array is fine since we're using functions that don't change
+  fetchAppointments();
+  fetchPatients();
+  fetchPrescriptions();
+}, [fetchAppointments, fetchPatients, fetchPrescriptions]);
 
-// Make sure you have useCallback for functions if needed
 
   // Fetch all appointments for this doctor
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/appointments');
       setAppointments(res.data.data);
@@ -46,10 +40,10 @@ useEffect(() => {
       showToast.error('Failed to load appointments');
     }
     setLoading(false);
-  };
+  },[]);
 
   // Fetch all patients
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/users/patients');
       setPatients(res.data.data || []);
@@ -65,17 +59,17 @@ useEffect(() => {
         setPatients(uniquePatients);
       }
     }
-  };
+  },[]);
 
   // Fetch all prescriptions for this doctor
-  const fetchPrescriptions = async () => {
+  const fetchPrescriptions = useCallback(async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/prescriptions');
       setPrescriptions(res.data.data || []);
     } catch (error) {
       console.error('Error fetching prescriptions:', error);
     }
-  };
+  },[]);
 
   // Handle viewing patient history
   const handleViewHistory = (patientId) => {
