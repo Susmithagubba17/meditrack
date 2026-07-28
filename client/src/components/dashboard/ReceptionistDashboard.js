@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import ExportButton from '../common/ExportButton';
+import { showToast } from '../common/ToastNotifications';
+
 const ReceptionistDashboard = () => {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
@@ -28,10 +30,10 @@ const ReceptionistDashboard = () => {
         status: 'arrived'
       });
       fetchAppointments();
-      alert('✅ Patient checked in successfully!');
+      showToast.success('✅ Patient checked in successfully!');
     } catch (error) {
       console.error('Error checking in patient:', error);
-      alert('❌ Failed to check in patient.');
+      showToast.error('Failed to check in patient.');
     }
   };
 
@@ -41,10 +43,10 @@ const ReceptionistDashboard = () => {
         status: 'completed'
       });
       fetchAppointments();
-      alert('✅ Appointment marked as completed!');
+      showToast.success('✅ Appointment marked as completed!');
     } catch (error) {
       console.error('Error completing appointment:', error);
-      alert('❌ Failed to complete appointment.');
+      showToast.error('Failed to complete appointment.');
     }
   };
 
@@ -53,12 +55,21 @@ const ReceptionistDashboard = () => {
       try {
         await axios.delete(`http://localhost:5000/api/appointments/${id}`);
         fetchAppointments();
-        alert('✅ Appointment cancelled!');
+        showToast.success('✅ Appointment cancelled!');
       } catch (error) {
         console.error('Error cancelling appointment:', error);
-        alert('❌ Failed to cancel appointment.');
+        showToast.error('Failed to cancel appointment.');
       }
     }
+  };
+
+  // Format date function
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString();
+  };
+
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString();
   };
 
   const filteredAppointments = appointments.filter(apt => 
@@ -90,7 +101,6 @@ const ReceptionistDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div style={styles.statsGrid}>
         <div style={styles.statCard}>
           <div style={styles.statNumber}>{stats.total}</div>
@@ -113,17 +123,31 @@ const ReceptionistDashboard = () => {
           <div style={styles.statLabel}>Cancelled</div>
         </div>
       </div>
-      // Add this after the stats cards
-<div style={styles.exportSection}>
-  <h4 style={styles.exportTitle}>📊 Export Reports</h4>
-  <div style={styles.exportButtons}>
-    <ExportButton type="appointments" label="Appointments" variant="primary" icon="📋" />
-    <ExportButton type="prescriptions" label="Prescriptions" variant="success" icon="💊" />
-    <ExportButton type="patients" label="Patients" variant="warning" icon="👤" />
-  </div>
-</div>
 
-      {/* Search Bar */}
+      <div style={styles.exportSection}>
+        <h4 style={styles.exportTitle}>📊 Export Reports</h4>
+        <div style={styles.exportButtons}>
+          <ExportButton 
+            type="appointments" 
+            label="Appointments" 
+            variant="primary" 
+            icon="📋" 
+          />
+          <ExportButton 
+            type="prescriptions" 
+            label="Prescriptions" 
+            variant="success" 
+            icon="💊" 
+          />
+          <ExportButton 
+            type="patients" 
+            label="Patients" 
+            variant="warning" 
+            icon="👤" 
+          />
+        </div>
+      </div>
+
       <div style={styles.searchContainer}>
         <input
           type="text"
@@ -134,7 +158,6 @@ const ReceptionistDashboard = () => {
         />
       </div>
 
-      {/* Appointments List */}
       <h3 style={styles.sectionTitle}>All Appointments</h3>
       {filteredAppointments.length === 0 ? (
         <p style={styles.emptyState}>
@@ -165,10 +188,10 @@ const ReceptionistDashboard = () => {
               </div>
               <div style={styles.cardDetails}>
                 <div style={styles.cardDetail}>
-                  <strong>📅 Date:</strong> {new Date(apt.dateTime).toLocaleDateString()}
+                  <strong>📅 Date:</strong> {formatDate(apt.dateTime)}
                 </div>
                 <div style={styles.cardDetail}>
-                  <strong>⏰ Time:</strong> {new Date(apt.dateTime).toLocaleTimeString()}
+                  <strong>⏰ Time:</strong> {formatTime(apt.dateTime)}
                 </div>
                 <div style={styles.cardDetail}>
                   <strong>📝 Reason:</strong> {apt.reason}
@@ -284,6 +307,22 @@ const styles = {
     color: '#666',
     marginTop: '5px',
     fontSize: '14px'
+  },
+  exportSection: {
+    background: 'white',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    marginBottom: '20px'
+  },
+  exportTitle: {
+    margin: '0 0 15px 0',
+    color: '#333'
+  },
+  exportButtons: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap'
   },
   searchContainer: {
     marginBottom: '20px'
