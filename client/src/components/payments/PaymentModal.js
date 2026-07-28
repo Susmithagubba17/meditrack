@@ -28,8 +28,6 @@ const PaymentModal = ({
     return parts.join(' ');
   };
 
-  // ✅ FIXED: Added parentheses to fix mixed operators
-// ✅ Fixed
 const formatExpiry = (value) => {
   const v = value.replace(/\D/g, '');
   if ((v.length >= 2 && v.length <= 4) || v.length === 6) {
