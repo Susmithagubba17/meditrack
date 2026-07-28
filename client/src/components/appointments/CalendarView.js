@@ -7,7 +7,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 
 const CalendarView = () => {
-  const { user } = useAuth();
+  
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
