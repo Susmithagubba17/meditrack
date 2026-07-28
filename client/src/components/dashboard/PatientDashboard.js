@@ -49,7 +49,7 @@ const PatientDashboard = () => {
     try {
       const loadingToast = showToast.loading('Booking appointment...');
       
-      const response = await axios.post('http://localhost:5000/api/appointments', {
+      await axios.post('http://localhost:5000/api/appointments', {
         doctorId: formData.doctorId,
         dateTime: new Date(formData.dateTime).toISOString(),
         reason: formData.reason
