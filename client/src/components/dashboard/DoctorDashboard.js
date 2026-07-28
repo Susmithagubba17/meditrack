@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import VideoCall from '../video/VideoCall';
@@ -23,15 +23,9 @@ const DoctorDashboard = () => {
     notes: '',
     refillsRemaining: 0
   });
-useEffect(() => {
-  fetchAppointments();
-  fetchPatients();
-  fetchPrescriptions();
-}, [fetchAppointments, fetchPatients, fetchPrescriptions]);
 
-
-  // Fetch all appointments for this doctor
-  const fetchAppointments = useCallback(async () => {
+  // ✅ FIXED: Defined before useEffect
+  const fetchAppointments = async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/appointments');
       setAppointments(res.data.data);
@@ -40,10 +34,9 @@ useEffect(() => {
       showToast.error('Failed to load appointments');
     }
     setLoading(false);
-  },[]);
+  };
 
-  // Fetch all patients
-  const fetchPatients = useCallback(async () => {
+  const fetchPatients = async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/users/patients');
       setPatients(res.data.data || []);
@@ -59,32 +52,36 @@ useEffect(() => {
         setPatients(uniquePatients);
       }
     }
-  },[]);
+  };
 
-  // Fetch all prescriptions for this doctor
-  const fetchPrescriptions = useCallback(async () => {
+  const fetchPrescriptions = async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/prescriptions');
       setPrescriptions(res.data.data || []);
     } catch (error) {
       console.error('Error fetching prescriptions:', error);
     }
-  },[]);
+  };
 
-  // Handle viewing patient history
+  // ✅ FIXED: useEffect with all dependencies
+  useEffect(() => {
+    fetchAppointments();
+    fetchPatients();
+    fetchPrescriptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleViewHistory = (patientId) => {
     setSelectedPatient(patientId);
     setShowPatientHistory(true);
   };
 
-  // Handle medication field changes
   const handleMedicationChange = (index, field, value) => {
     const newMedications = [...formData.medications];
     newMedications[index][field] = value;
     setFormData({ ...formData, medications: newMedications });
   };
 
-  // Add new medication row
   const handleAddMedication = () => {
     setFormData({
       ...formData,
@@ -92,7 +89,6 @@ useEffect(() => {
     });
   };
 
-  // Remove medication row
   const handleRemoveMedication = (index) => {
     if (formData.medications.length > 1) {
       const newMedications = formData.medications.filter((_, i) => i !== index);
@@ -100,7 +96,6 @@ useEffect(() => {
     }
   };
 
-  // Submit prescription
   const handleSubmitPrescription = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -141,7 +136,6 @@ useEffect(() => {
     setSubmitting(false);
   };
 
-  // Check-in patient
   const handleCheckIn = async (id) => {
     try {
       await axios.put(`http://localhost:5000/api/appointments/${id}`, {
@@ -155,7 +149,6 @@ useEffect(() => {
     }
   };
 
-  // Start appointment
   const handleStartAppointment = async (id) => {
     try {
       await axios.put(`http://localhost:5000/api/appointments/${id}`, {
@@ -169,7 +162,6 @@ useEffect(() => {
     }
   };
 
-  // Complete appointment
   const handleCompleteAppointment = async (id) => {
     try {
       await axios.put(`http://localhost:5000/api/appointments/${id}`, {
@@ -183,7 +175,6 @@ useEffect(() => {
     }
   };
 
-  // Download Prescription PDF
   const downloadPrescriptionPDF = async (prescriptionId) => {
     try {
       const loadingToast = showToast.loading('Generating PDF...');
@@ -224,7 +215,6 @@ useEffect(() => {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
       <div style={styles.header}>
         <div>
           <h2 style={styles.title}>👨‍⚕️ Welcome, Dr. {user?.name}</h2>
@@ -239,7 +229,6 @@ useEffect(() => {
         </button>
       </div>
 
-      {/* Stats Cards */}
       <div style={styles.statsGrid}>
         <div style={styles.statCard}>
           <div style={styles.statNumber}>{stats.total}</div>
@@ -263,7 +252,6 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Export Section */}
       <div style={styles.exportSection}>
         <h4 style={styles.exportTitle}>📊 Export Reports</h4>
         <div style={styles.exportButtons}>
@@ -282,12 +270,10 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Pending Refill Requests Section */}
       {user?.role === 'doctor' && (
         <RefillRequests />
       )}
 
-      {/* Prescription Form */}
       {showPrescriptionForm && (
         <div style={styles.formContainer}>
           <h3>💊 Write Prescription</h3>
@@ -399,7 +385,6 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Appointments List */}
       <h3 style={styles.sectionTitle}>📋 Today's Appointments</h3>
       {appointments.length === 0 ? (
         <p style={styles.emptyState}>No appointments scheduled for today.</p>
@@ -411,7 +396,6 @@ useEffect(() => {
                 <div>
                   <span style={styles.patientName}>👤 {apt.patientId?.name || 'Unknown Patient'}</span>
                   <span style={styles.patientEmail}>{apt.patientId?.email || ''}</span>
-                  {/* ✅ HISTORY BUTTON */}
                   <button 
                     onClick={() => handleViewHistory(apt.patientId?._id)}
                     style={styles.historyBtn}
@@ -449,7 +433,6 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Video Call Button */}
               {(apt.status === 'scheduled' || apt.status === 'arrived' || apt.status === 'in-progress') && (
                 <div style={styles.videoCallContainer}>
                   <VideoCall 
@@ -505,7 +488,6 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Prescriptions List */}
       <h3 style={styles.sectionTitle}>💊 Your Prescriptions</h3>
       {prescriptions.length === 0 ? (
         <p style={styles.emptyState}>No prescriptions written yet.</p>
@@ -546,7 +528,6 @@ useEffect(() => {
         </div>
       )}
 
-      {/* ✅ Patient Medical History Modal */}
       {showPatientHistory && selectedPatient && (
         <PatientMedicalHistory 
           patientId={selectedPatient}
@@ -558,332 +539,54 @@ useEffect(() => {
 };
 
 const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '1200px',
-    margin: '0 auto'
-  },
-  loading: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '200px',
-    fontSize: '18px',
-    color: '#666'
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '30px',
-    flexWrap: 'wrap'
-  },
-  title: {
-    fontSize: '28px',
-    margin: 0,
-    color: '#333'
-  },
-  subtitle: {
-    color: '#666',
-    margin: '5px 0 5px 0'
-  },
-  specialty: {
-    color: '#1a73e8',
-    fontWeight: '600'
-  },
-  prescriptionBtn: {
-    background: '#6f42c1',
-    color: 'white',
-    border: 'none',
-    padding: '12px 24px',
-    borderRadius: '4px',
-    fontSize: '16px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    marginTop: '10px'
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '15px',
-    marginBottom: '30px'
-  },
-  statCard: {
-    background: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    textAlign: 'center',
-    borderBottom: '3px solid #1a73e8'
-  },
-  statNumber: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#1a73e8'
-  },
-  statLabel: {
-    color: '#666',
-    marginTop: '5px',
-    fontSize: '14px'
-  },
-  exportSection: {
-    background: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    marginBottom: '20px'
-  },
-  exportTitle: {
-    margin: '0 0 15px 0',
-    color: '#333'
-  },
-  exportButtons: {
-    display: 'flex',
-    gap: '10px',
-    flexWrap: 'wrap'
-  },
-  formContainer: {
-    background: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    marginBottom: '30px'
-  },
-  form: {
-    display: 'grid',
-    gap: '15px'
-  },
-  formGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '5px'
-  },
-  input: {
-    padding: '10px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontFamily: 'inherit'
-  },
-  hint: {
-    fontSize: '12px',
-    color: '#666',
-    margin: '5px 0 0 0'
-  },
-  medicationsSection: {
-    background: '#f8f9fa',
-    padding: '15px',
-    borderRadius: '4px'
-  },
-  medicationRow: {
-    display: 'flex',
-    gap: '8px',
-    marginBottom: '8px',
-    alignItems: 'center',
-    flexWrap: 'wrap'
-  },
-  medicationInput: {
-    flex: '1',
-    padding: '8px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px',
-    minWidth: '120px'
-  },
-  removeMedBtn: {
-    background: '#dc3545',
-    color: 'white',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  },
-  addMedBtn: {
-    background: '#28a745',
-    color: 'white',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px'
-  },
-  formActions: {
-    display: 'flex',
-    gap: '10px',
-    marginTop: '10px',
-    flexWrap: 'wrap'
-  },
-  submitBtn: {
-    background: '#6f42c1',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '600'
-  },
-  cancelBtn: {
-    background: '#dc3545',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '600'
-  },
-  sectionTitle: {
-    marginBottom: '20px',
-    color: '#333',
-    marginTop: '30px'
-  },
-  emptyState: {
-    color: '#666',
-    textAlign: 'center',
-    padding: '40px',
-    background: '#f8f9fa',
-    borderRadius: '8px'
-  },
-  appointmentGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '20px',
-    marginBottom: '20px'
-  },
-  appointmentCard: {
-    background: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    borderLeft: '4px solid #28a745'
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '10px'
-  },
-  patientName: {
-    fontWeight: 'bold',
-    fontSize: '16px',
-    display: 'block'
-  },
-  patientEmail: {
-    fontSize: '12px',
-    color: '#666',
-    display: 'block'
-  },
-  historyBtn: {
-    background: '#17a2b8',
-    color: 'white',
-    border: 'none',
-    padding: '4px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    marginTop: '5px',
-    transition: 'background 0.3s'
-  },
-  statusBadge: {
-    padding: '4px 8px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    textTransform: 'capitalize',
-    whiteSpace: 'nowrap'
-  },
-  cardDetails: {
-    marginBottom: '10px'
-  },
-  cardDetail: {
-    marginBottom: '4px',
-    fontSize: '14px',
-    color: '#555'
-  },
-  videoCallContainer: {
-    marginTop: '10px',
-    marginBottom: '10px'
-  },
-  cardActions: {
-    display: 'flex',
-    gap: '8px',
-    marginTop: '10px',
-    flexWrap: 'wrap'
-  },
-  checkInBtn: {
-    background: '#ffc107',
-    color: '#333',
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    flex: '1',
-    minWidth: '80px'
-  },
-  startBtn: {
-    background: '#17a2b8',
-    color: 'white',
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    flex: '1',
-    minWidth: '80px'
-  },
-  completeBtn: {
-    background: '#28a745',
-    color: 'white',
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    flex: '1',
-    minWidth: '80px'
-  },
-  completedLabel: {
-    background: '#d4edda',
-    color: '#155724',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    textAlign: 'center',
-    flex: '1'
-  },
-  cancelledLabel: {
-    background: '#f8d7da',
-    color: '#721c24',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    textAlign: 'center',
-    flex: '1'
-  },
-  prescriptionGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '15px'
-  },
-  prescriptionCard: {
-    background: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    borderLeft: '4px solid #6f42c1'
-  },
-  pdfBtn: {
-    background: '#dc3545',
-    color: 'white',
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    marginTop: '10px',
-    width: '100%'
-  }
+  container: { padding: '20px', maxWidth: '1200px', margin: '0 auto' },
+  loading: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px', fontSize: '18px', color: '#666' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px', flexWrap: 'wrap' },
+  title: { fontSize: '28px', margin: 0, color: '#333' },
+  subtitle: { color: '#666', margin: '5px 0 5px 0' },
+  specialty: { color: '#1a73e8', fontWeight: '600' },
+  prescriptionBtn: { background: '#6f42c1', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '4px', fontSize: '16px', cursor: 'pointer', fontWeight: '600', marginTop: '10px' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '30px' },
+  statCard: { background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center', borderBottom: '3px solid #1a73e8' },
+  statNumber: { fontSize: '28px', fontWeight: 'bold', color: '#1a73e8' },
+  statLabel: { color: '#666', marginTop: '5px', fontSize: '14px' },
+  exportSection: { background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', marginBottom: '20px' },
+  exportTitle: { margin: '0 0 15px 0', color: '#333' },
+  exportButtons: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+  formContainer: { background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', marginBottom: '30px' },
+  form: { display: 'grid', gap: '15px' },
+  formGroup: { display: 'flex', flexDirection: 'column', gap: '5px' },
+  input: { padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', fontFamily: 'inherit' },
+  hint: { fontSize: '12px', color: '#666', margin: '5px 0 0 0' },
+  medicationsSection: { background: '#f8f9fa', padding: '15px', borderRadius: '4px' },
+  medicationRow: { display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center', flexWrap: 'wrap' },
+  medicationInput: { flex: '1', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', minWidth: '120px' },
+  removeMedBtn: { background: '#dc3545', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' },
+  addMedBtn: { background: '#28a745', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' },
+  formActions: { display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' },
+  submitBtn: { background: '#6f42c1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+  cancelBtn: { background: '#dc3545', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+  sectionTitle: { marginBottom: '20px', color: '#333', marginTop: '30px' },
+  emptyState: { color: '#666', textAlign: 'center', padding: '40px', background: '#f8f9fa', borderRadius: '8px' },
+  appointmentGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px', marginBottom: '20px' },
+  appointmentCard: { background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', borderLeft: '4px solid #28a745' },
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' },
+  patientName: { fontWeight: 'bold', fontSize: '16px', display: 'block' },
+  patientEmail: { fontSize: '12px', color: '#666', display: 'block' },
+  historyBtn: { background: '#17a2b8', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', marginTop: '5px' },
+  statusBadge: { padding: '4px 8px', borderRadius: '4px', fontSize: '12px', textTransform: 'capitalize', whiteSpace: 'nowrap' },
+  cardDetails: { marginBottom: '10px' },
+  cardDetail: { marginBottom: '4px', fontSize: '14px', color: '#555' },
+  videoCallContainer: { marginTop: '10px', marginBottom: '10px' },
+  cardActions: { display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' },
+  checkInBtn: { background: '#ffc107', color: '#333', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', flex: '1', minWidth: '80px' },
+  startBtn: { background: '#17a2b8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', flex: '1', minWidth: '80px' },
+  completeBtn: { background: '#28a745', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', flex: '1', minWidth: '80px' },
+  completedLabel: { background: '#d4edda', color: '#155724', padding: '6px 12px', borderRadius: '4px', fontSize: '12px', textAlign: 'center', flex: '1' },
+  cancelledLabel: { background: '#f8d7da', color: '#721c24', padding: '6px 12px', borderRadius: '4px', fontSize: '12px', textAlign: 'center', flex: '1' },
+  prescriptionGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px' },
+  prescriptionCard: { background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', borderLeft: '4px solid #6f42c1' },
+  pdfBtn: { background: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', marginTop: '10px', width: '100%' }
 };
 
 export default DoctorDashboard;
