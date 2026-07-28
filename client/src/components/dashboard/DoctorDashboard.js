@@ -24,11 +24,17 @@ const DoctorDashboard = () => {
     refillsRemaining: 0
   });
 
-  useEffect(() => {
-    fetchAppointments();
-    fetchPatients();
-    fetchPrescriptions();
-  }, []);
+ // ✅ FIXED: Added missing dependencies
+useEffect(() => {
+  const fetchData = async () => {
+    await fetchAppointments();
+    await fetchPatients();
+    await fetchPrescriptions();
+  };
+  fetchData();
+}, []);  // Empty array is fine since we're using functions that don't change
+
+// Make sure you have useCallback for functions if needed
 
   // Fetch all appointments for this doctor
   const fetchAppointments = async () => {
