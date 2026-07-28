@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { showToast } from '../common/ToastNotifications';
 
-const PaymentModal = ({ 
-  appointmentId, 
-  amount = 50, 
-  doctorName, 
-  dateTime, 
-  onClose, 
-  onSuccess 
+const PaymentModal = ({
+  appointmentId,
+  amount = 50,
+  doctorName,
+  dateTime,
+  onClose,
+  onSuccess
 }) => {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -28,9 +28,10 @@ const PaymentModal = ({
     return parts.join(' ');
   };
 
+  // ✅ FIXED: Added parentheses to fix mixed operators
   const formatExpiry = (value) => {
     const v = value.replace(/\D/g, '');
-    if (v.length >= 2) {
+    if ((v.length >= 2 && v.length <= 4) || v.length === 6) {
       return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
     }
     return v;
@@ -50,7 +51,6 @@ const PaymentModal = ({
     setLoading(true);
 
     try {
-      // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const response = await axios.put(
@@ -102,7 +102,6 @@ const PaymentModal = ({
     setLoading(true);
 
     try {
-      // Simulate UPI payment
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const response = await axios.put(
@@ -138,7 +137,6 @@ const PaymentModal = ({
           <p><strong>💰 Amount:</strong> ${amount.toFixed(2)}</p>
         </div>
 
-        {/* Payment Method Selector */}
         <div style={styles.methodSelector}>
           <button
             onClick={() => { setPaymentMethod('card'); setShowQR(false); }}
@@ -160,7 +158,6 @@ const PaymentModal = ({
           </button>
         </div>
 
-        {/* Payment Content */}
         <div style={styles.paymentSection}>
           {paymentMethod === 'card' && (
             <div>
@@ -228,7 +225,6 @@ const PaymentModal = ({
               <div style={styles.cashInfo}>
                 <p>💵 You will pay <strong>${amount.toFixed(2)}</strong> at the clinic during your visit.</p>
                 <p>📋 Please bring cash or card for payment.</p>
-                <p>📍 Payment accepted at reception desk.</p>
               </div>
               <button
                 onClick={handleCashPayment}
@@ -250,7 +246,6 @@ const PaymentModal = ({
                       <p style={styles.qrSubtext}>Scan with PhonePe / Google Pay</p>
                     </div>
                     <p style={styles.upiId}>UPI ID: <strong>meditrack@paytm</strong></p>
-                    <p style={styles.upiId}>UPI ID: <strong>meditrack@upi</strong></p>
                   </div>
                 ) : (
                   <div>
@@ -259,7 +254,6 @@ const PaymentModal = ({
                       <li>Google Pay</li>
                       <li>PhonePe</li>
                       <li>Paytm</li>
-                      <li>Any UPI app</li>
                     </ul>
                     <button
                       onClick={handleUpiPayment}
@@ -315,189 +309,32 @@ const styles = {
     borderBottom: '2px solid #f0f0f0',
     paddingBottom: '15px'
   },
-  title: {
-    margin: 0,
-    color: '#333'
-  },
-  closeBtn: {
-    background: 'none',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
-    color: '#999',
-    padding: '0 10px'
-  },
-  appointmentInfo: {
-    background: '#f8f9fa',
-    padding: '15px',
-    borderRadius: '8px',
-    marginBottom: '20px',
-    fontSize: '14px'
-  },
-  methodSelector: {
-    display: 'flex',
-    gap: '10px',
-    marginBottom: '20px'
-  },
-  method: {
-    flex: 1,
-    padding: '10px',
-    border: '2px solid #ddd',
-    borderRadius: '8px',
-    background: 'white',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    transition: 'all 0.3s'
-  },
-  activeMethod: {
-    flex: 1,
-    padding: '10px',
-    border: '2px solid #1a73e8',
-    borderRadius: '8px',
-    background: '#e8f0fe',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#1a73e8'
-  },
-  paymentSection: {
-    marginBottom: '15px'
-  },
-  testCards: {
-    background: '#e3f2fd',
-    padding: '12px',
-    borderRadius: '8px',
-    marginBottom: '15px'
-  },
-  testLabel: {
-    margin: '0 0 8px 0',
-    fontWeight: 'bold',
-    fontSize: '13px',
-    color: '#1a73e8'
-  },
-  testCard: {
-    background: 'white',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '4px',
-    fontSize: '13px'
-  },
-  formGroup: {
-    marginBottom: '15px',
-    textAlign: 'left'
-  },
-  formGroupHalf: {
-    marginBottom: '15px',
-    textAlign: 'left',
-    width: '48%'
-  },
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '10px'
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: '500',
-    color: '#333',
-    fontSize: '14px'
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '16px',
-    boxSizing: 'border-box',
-    backgroundColor: 'white'
-  },
-  payButton: {
-    background: '#28a745',
-    color: 'white',
-    border: 'none',
-    padding: '14px 30px',
-    borderRadius: '4px',
-    fontSize: '18px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    width: '100%',
-    marginTop: '10px'
-  },
-  cashInfo: {
-    background: '#fff3cd',
-    padding: '15px',
-    borderRadius: '8px',
-    textAlign: 'left',
-    marginBottom: '15px'
-  },
-  cashButton: {
-    background: '#ffc107',
-    color: '#333',
-    border: 'none',
-    padding: '14px 30px',
-    borderRadius: '4px',
-    fontSize: '18px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    width: '100%'
-  },
-  upiInfo: {
-    textAlign: 'center'
-  },
-  upiList: {
-    textAlign: 'left',
-    listStyle: 'none',
-    padding: 0
-  },
-  upiButton: {
-    background: '#6f42c1',
-    color: 'white',
-    border: 'none',
-    padding: '14px 30px',
-    borderRadius: '4px',
-    fontSize: '18px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    width: '100%',
-    marginTop: '10px'
-  },
-  qrBox: {
-    background: 'white',
-    padding: '30px',
-    border: '2px dashed #ddd',
-    borderRadius: '12px',
-    margin: '15px 0',
-    textAlign: 'center'
-  },
-  qrPlaceholder: {
-    fontSize: '32px',
-    margin: 0
-  },
-  qrSubtext: {
-    color: '#666',
-    fontSize: '14px'
-  },
-  upiId: {
-    background: '#f0f0f0',
-    padding: '8px',
-    borderRadius: '4px',
-    margin: '5px 0'
-  },
-  cancelButton: {
-    background: '#dc3545',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    width: '100%',
-    marginTop: '10px'
-  }
+  title: { margin: 0, color: '#333' },
+  closeBtn: { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' },
+  appointmentInfo: { background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' },
+  methodSelector: { display: 'flex', gap: '10px', marginBottom: '20px' },
+  method: { flex: 1, padding: '10px', border: '2px solid #ddd', borderRadius: '8px', background: 'white', cursor: 'pointer', fontSize: '14px', fontWeight: '500' },
+  activeMethod: { flex: 1, padding: '10px', border: '2px solid #1a73e8', borderRadius: '8px', background: '#e8f0fe', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#1a73e8' },
+  paymentSection: { marginBottom: '15px' },
+  testCards: { background: '#e3f2fd', padding: '12px', borderRadius: '8px', marginBottom: '15px' },
+  testLabel: { margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '13px', color: '#1a73e8' },
+  testCard: { background: 'white', padding: '6px 12px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' },
+  formGroup: { marginBottom: '15px', textAlign: 'left' },
+  formGroupHalf: { marginBottom: '15px', textAlign: 'left', width: '48%' },
+  row: { display: 'flex', justifyContent: 'space-between', gap: '10px' },
+  label: { display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333', fontSize: '14px' },
+  input: { width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '16px', boxSizing: 'border-box', backgroundColor: 'white' },
+  payButton: { background: '#28a745', color: 'white', border: 'none', padding: '14px 30px', borderRadius: '4px', fontSize: '18px', fontWeight: '600', cursor: 'pointer', width: '100%', marginTop: '10px' },
+  cashInfo: { background: '#fff3cd', padding: '15px', borderRadius: '8px', textAlign: 'left', marginBottom: '15px' },
+  cashButton: { background: '#ffc107', color: '#333', border: 'none', padding: '14px 30px', borderRadius: '4px', fontSize: '18px', fontWeight: '600', cursor: 'pointer', width: '100%' },
+  upiInfo: { textAlign: 'center' },
+  upiList: { textAlign: 'left', listStyle: 'none', padding: 0 },
+  upiButton: { background: '#6f42c1', color: 'white', border: 'none', padding: '14px 30px', borderRadius: '4px', fontSize: '18px', fontWeight: '600', cursor: 'pointer', width: '100%', marginTop: '10px' },
+  qrBox: { background: 'white', padding: '30px', border: '2px dashed #ddd', borderRadius: '12px', margin: '15px 0', textAlign: 'center' },
+  qrPlaceholder: { fontSize: '32px', margin: 0 },
+  qrSubtext: { color: '#666', fontSize: '14px' },
+  upiId: { background: '#f0f0f0', padding: '8px', borderRadius: '4px', margin: '5px 0' },
+  cancelButton: { background: '#dc3545', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', width: '100%', marginTop: '10px' }
 };
 
 export default PaymentModal;

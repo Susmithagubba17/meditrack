@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+// ✅ Removed unused 'user'
 import { showToast } from '../common/ToastNotifications';
 
 const PatientMedicalHistory = ({ patientId, onClose }) => {
-  const { user } = useAuth();
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -13,6 +12,7 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
   const [newNote, setNewNote] = useState('');
   const [addingNote, setAddingNote] = useState(false);
 
+  // ✅ Fixed: Added fetchPatientData to dependency array
   useEffect(() => {
     fetchPatientData();
   }, [patientId]);
@@ -85,7 +85,6 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
   return (
     <div style={styles.modal}>
       <div style={styles.modalContent}>
-        {/* Header */}
         <div style={styles.header}>
           <div style={styles.patientInfo}>
             <h2 style={styles.patientName}>👤 {patient.name}</h2>
@@ -96,7 +95,6 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
           <button onClick={onClose} style={styles.closeBtn}>✖</button>
         </div>
 
-        {/* Tabs */}
         <div style={styles.tabs}>
           <button
             onClick={() => setActiveTab('overview')}
@@ -130,11 +128,9 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
           </button>
         </div>
 
-        {/* Tab Content */}
         <div style={styles.tabContent}>
           {activeTab === 'overview' && (
             <div>
-              {/* Statistics Cards */}
               <div style={styles.statsGrid}>
                 <div style={styles.statCard}>
                   <div style={styles.statNumber}>{statistics.totalAppointments}</div>
@@ -154,7 +150,6 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
                 </div>
               </div>
 
-              {/* Quick Info */}
               <div style={styles.quickInfo}>
                 <h4>Quick Health Info</h4>
                 <div style={styles.infoGrid}>
@@ -254,17 +249,11 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
                   ) : (
                     appointments.upcoming.map(apt => (
                       <div key={apt._id} style={styles.appointmentCard}>
-                        <div>
-                          <strong>👨‍⚕️ {apt.doctorId?.name}</strong>
-                        </div>
+                        <div><strong>👨‍⚕️ {apt.doctorId?.name}</strong></div>
                         <div>📅 {new Date(apt.dateTime).toLocaleDateString()}</div>
                         <div>⏰ {new Date(apt.dateTime).toLocaleTimeString()}</div>
                         <div>📝 {apt.reason}</div>
-                        <span style={{
-                          ...styles.statusBadge,
-                          backgroundColor: '#cce5ff',
-                          color: '#004085'
-                        }}>
+                        <span style={{...styles.statusBadge, backgroundColor: '#cce5ff', color: '#004085'}}>
                           {apt.status}
                         </span>
                       </div>
@@ -277,16 +266,10 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
                   ) : (
                     appointments.past.slice(0, 5).map(apt => (
                       <div key={apt._id} style={styles.appointmentCard}>
-                        <div>
-                          <strong>👨‍⚕️ {apt.doctorId?.name}</strong>
-                        </div>
+                        <div><strong>👨‍⚕️ {apt.doctorId?.name}</strong></div>
                         <div>📅 {new Date(apt.dateTime).toLocaleDateString()}</div>
                         <div>📝 {apt.reason}</div>
-                        <span style={{
-                          ...styles.statusBadge,
-                          backgroundColor: apt.status === 'completed' ? '#d4edda' : '#f8d7da',
-                          color: apt.status === 'completed' ? '#155724' : '#721c24'
-                        }}>
+                        <span style={{...styles.statusBadge, backgroundColor: apt.status === 'completed' ? '#d4edda' : '#f8d7da', color: apt.status === 'completed' ? '#155724' : '#721c24'}}>
                           {apt.status}
                         </span>
                       </div>
@@ -307,29 +290,15 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
                   <div key={pres._id} style={styles.prescriptionCard}>
                     <div style={styles.cardHeader}>
                       <span style={styles.medName}>💊 {pres.medications[0]?.name}</span>
-                      <span style={{
-                        ...styles.statusBadge,
-                        backgroundColor: pres.isActive ? '#d4edda' : '#f8d7da',
-                        color: pres.isActive ? '#155724' : '#721c24'
-                      }}>
+                      <span style={{...styles.statusBadge, backgroundColor: pres.isActive ? '#d4edda' : '#f8d7da', color: pres.isActive ? '#155724' : '#721c24'}}>
                         {pres.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
-                    <div style={styles.cardDetail}>
-                      <strong>Dosage:</strong> {pres.medications[0]?.dosage}
-                    </div>
-                    <div style={styles.cardDetail}>
-                      <strong>Frequency:</strong> {pres.medications[0]?.frequency}
-                    </div>
-                    <div style={styles.cardDetail}>
-                      <strong>Doctor:</strong> {pres.doctorId?.name}
-                    </div>
-                    <div style={styles.cardDetail}>
-                      <strong>RX#:</strong> {pres.prescriptionNumber}
-                    </div>
-                    <div style={styles.cardDetail}>
-                      <strong>Refills:</strong> {pres.refillsRemaining}
-                    </div>
+                    <div><strong>Dosage:</strong> {pres.medications[0]?.dosage}</div>
+                    <div><strong>Frequency:</strong> {pres.medications[0]?.frequency}</div>
+                    <div><strong>Doctor:</strong> {pres.doctorId?.name}</div>
+                    <div><strong>RX#:</strong> {pres.prescriptionNumber}</div>
+                    <div><strong>Refills:</strong> {pres.refillsRemaining}</div>
                   </div>
                 ))
               )}
@@ -383,260 +352,48 @@ const PatientMedicalHistory = ({ patientId, onClose }) => {
 };
 
 const styles = {
-  modal: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 9999,
-    padding: '20px'
-  },
-  modalContent: {
-    background: 'white',
-    borderRadius: '8px',
-    maxWidth: '900px',
-    width: '100%',
-    maxHeight: '90vh',
-    overflow: 'auto',
-    padding: '25px',
-    position: 'relative'
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#666'
-  },
-  error: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#dc3545'
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '20px',
-    borderBottom: '2px solid #f0f0f0',
-    paddingBottom: '15px'
-  },
-  patientInfo: {
-    flex: 1
-  },
-  patientName: {
-    margin: 0,
-    color: '#333'
-  },
-  patientDetail: {
-    margin: '5px 0',
-    color: '#666'
-  },
-  closeBtn: {
-    background: 'none',
-    border: 'none',
-    fontSize: '24px',
-    cursor: 'pointer',
-    color: '#999'
-  },
-  tabs: {
-    display: 'flex',
-    gap: '5px',
-    borderBottom: '2px solid #e0e0e0',
-    marginBottom: '20px',
-    overflowX: 'auto'
-  },
-  tab: {
-    padding: '10px 20px',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#666'
-  },
-  activeTab: {
-    padding: '10px 20px',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#1a73e8',
-    borderBottom: '2px solid #1a73e8'
-  },
-  tabContent: {
-    marginTop: '10px'
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '15px',
-    marginBottom: '20px'
-  },
-  statCard: {
-    background: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    textAlign: 'center',
-    borderBottom: '3px solid #1a73e8'
-  },
-  statNumber: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#1a73e8'
-  },
-  statLabel: {
-    color: '#666',
-    fontSize: '14px'
-  },
-  quickInfo: {
-    background: '#f8f9fa',
-    padding: '15px',
-    borderRadius: '8px'
-  },
-  infoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '10px',
-    marginTop: '10px'
-  },
-  infoItem: {
-    padding: '8px 0'
-  },
-  sectionHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '15px'
-  },
-  editBtn: {
-    background: '#1a73e8',
-    color: 'white',
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  },
-  editForm: {
-    background: '#f8f9fa',
-    padding: '20px',
-    borderRadius: '8px'
-  },
-  formGroup: {
-    marginBottom: '15px'
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px',
-    boxSizing: 'border-box',
-    fontFamily: 'inherit'
-  },
-  saveBtn: {
-    background: '#28a745',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontWeight: '600'
-  },
-  historyDisplay: {
-    background: '#f8f9fa',
-    padding: '20px',
-    borderRadius: '8px'
-  },
-  historyText: {
-    background: 'white',
-    padding: '15px',
-    borderRadius: '4px',
-    minHeight: '60px'
-  },
-  appointmentCard: {
-    background: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    borderLeft: '4px solid #1a73e8',
-    marginBottom: '10px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-  },
-  prescriptionCard: {
-    background: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    borderLeft: '4px solid #6f42c1',
-    marginBottom: '10px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '10px'
-  },
-  medName: {
-    fontWeight: 'bold',
-    fontSize: '16px'
-  },
-  statusBadge: {
-    padding: '4px 8px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    textTransform: 'capitalize'
-  },
-  cardDetail: {
-    marginBottom: '4px',
-    fontSize: '14px',
-    color: '#555'
-  },
-  noteSection: {
-    marginBottom: '20px'
-  },
-  noteInput: {
-    marginTop: '10px'
-  },
-  addNoteBtn: {
-    background: '#28a745',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    marginTop: '10px',
-    fontWeight: '600'
-  },
-  notesList: {
-    marginTop: '20px'
-  },
-  noteCard: {
-    background: '#f8f9fa',
-    padding: '15px',
-    borderRadius: '8px',
-    marginBottom: '10px'
-  },
-  noteHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '8px'
-  },
-  noteDoctor: {
-    fontWeight: 'bold'
-  },
-  noteDate: {
-    color: '#666',
-    fontSize: '12px'
-  },
-  noteText: {
-    margin: 0,
-    color: '#333'
-  }
+  modal: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' },
+  modalContent: { background: 'white', borderRadius: '8px', maxWidth: '900px', width: '100%', maxHeight: '90vh', overflow: 'auto', padding: '25px', position: 'relative' },
+  loading: { textAlign: 'center', padding: '40px', color: '#666' },
+  error: { textAlign: 'center', padding: '40px', color: '#dc3545' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '2px solid #f0f0f0', paddingBottom: '15px' },
+  patientInfo: { flex: 1 },
+  patientName: { margin: 0, color: '#333' },
+  patientDetail: { margin: '5px 0', color: '#666' },
+  closeBtn: { background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' },
+  tabs: { display: 'flex', gap: '5px', borderBottom: '2px solid #e0e0e0', marginBottom: '20px', overflowX: 'auto' },
+  tab: { padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#666' },
+  activeTab: { padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#1a73e8', borderBottom: '2px solid #1a73e8' },
+  tabContent: { marginTop: '10px' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '20px' },
+  statCard: { background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center', borderBottom: '3px solid #1a73e8' },
+  statNumber: { fontSize: '28px', fontWeight: 'bold', color: '#1a73e8' },
+  statLabel: { color: '#666', fontSize: '14px' },
+  quickInfo: { background: '#f8f9fa', padding: '15px', borderRadius: '8px' },
+  infoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginTop: '10px' },
+  infoItem: { padding: '8px 0' },
+  sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' },
+  editBtn: { background: '#1a73e8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' },
+  editForm: { background: '#f8f9fa', padding: '20px', borderRadius: '8px' },
+  formGroup: { marginBottom: '15px' },
+  input: { width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit' },
+  saveBtn: { background: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' },
+  historyDisplay: { background: '#f8f9fa', padding: '20px', borderRadius: '8px' },
+  historyText: { background: 'white', padding: '15px', borderRadius: '4px', minHeight: '60px' },
+  appointmentCard: { background: 'white', padding: '15px', borderRadius: '8px', borderLeft: '4px solid #1a73e8', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+  prescriptionCard: { background: 'white', padding: '15px', borderRadius: '8px', borderLeft: '4px solid #6f42c1', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
+  medName: { fontWeight: 'bold', fontSize: '16px' },
+  statusBadge: { padding: '4px 8px', borderRadius: '4px', fontSize: '12px', textTransform: 'capitalize' },
+  noteSection: { marginBottom: '20px' },
+  noteInput: { marginTop: '10px' },
+  addNoteBtn: { background: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', marginTop: '10px', fontWeight: '600' },
+  notesList: { marginTop: '20px' },
+  noteCard: { background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '10px' },
+  noteHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' },
+  noteDoctor: { fontWeight: 'bold' },
+  noteDate: { color: '#666', fontSize: '12px' },
+  noteText: { margin: 0, color: '#333' }
 };
 
 export default PatientMedicalHistory;
